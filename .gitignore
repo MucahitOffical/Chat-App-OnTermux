@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.pyc
+
+# VS Code
+.vscode/
+
+# Hassas dosyalar
+DataBase/
+
+# Password
+app_password.txt
