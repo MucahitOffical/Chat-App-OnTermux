@@ -6,7 +6,7 @@ from getpass import getpass
 from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
 
-HOST = "78.182.97.88"
+HOST = "Server IP Adresi"
 PORT = 5000
 
 
@@ -162,7 +162,7 @@ if os.path.isfile("Token.txt"):
         username = command[1]
         print(f"Merhaba {username}, çıkmak için 'exit' yazabilirsin.\n")
 
-    elif command[0] == "LOGIN_FAIL":   
+    elif command[0] == "LOGIN_FAIL":
         username, password = logUser()
         client.send(f"LOGIN_FAIL:{username}:{password}".encode())
 

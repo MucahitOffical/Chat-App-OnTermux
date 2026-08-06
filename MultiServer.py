@@ -1,7 +1,7 @@
 import socket
 import threading
 from Logger import process_message, log_message, save_data
-from Register import user_saver, login_user
+from Authorize import user_saver, login_user
 
 
 
