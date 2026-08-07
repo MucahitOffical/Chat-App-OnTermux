@@ -132,7 +132,6 @@ def register(client):
         command = client.recv(1024).decode().split(":")
 
         if command[0] == "REGISTER_OK":
-
             print(f"Hello {command[1]}")
 
             with open("Token.txt", "w") as f:

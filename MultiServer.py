@@ -1,5 +1,6 @@
 import socket
 import threading
+import re 
 from Logger import process_message, log_message, save_data
 from Authorize import user_saver, login_user
 
@@ -59,6 +60,11 @@ def handle_client(conn, addr):
                 "utf-8",
                 errors="ignore"
             )
+
+            if re.match(f"/{message.lower()}") == "/update":
+                if message.lower().split(" ")[1] in ["username", "email", "password", "occupation"]:
+                    pass #kullanıcı bilgilerini güncelleme işlemleri burada yapılacak 
+                    #hatta bunun için özel fonksiyonlar yazılabilir. (UserId.py dosyasına)
 
             if message.lower() == "exit":
 

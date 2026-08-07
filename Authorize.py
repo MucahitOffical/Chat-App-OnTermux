@@ -1,9 +1,10 @@
+import code
 import os
 import hashlib
 import secrets
 import pandas as pd
 import threading
-from MailEvents import sendMail
+from MailEvents import sendMail, mailControl
 from Logger import log_message
 from UserId import Person
 from IpEvents import IpInfo
@@ -34,6 +35,11 @@ def register_user(new_user, addr):
         # E-posta kontrolü
         if new_user["E-Mail"] in userdf["E-Mail"].values:
             return False, "Bu e-posta zaten kayıtlı."
+
+        # E-posta doğrulama kontrolü
+        ok = mailControl(new_user["E-Mail"])
+        if not ok:    
+            return False, "Mail gönderilemedi. Lütfen geçerli bir e-posta adresi girin."
 
         hashed_password = hashlib.sha256(
             new_user["Pasw"].encode("utf-8")
@@ -195,7 +201,6 @@ def login_user(conn, command):
         ok, mail_code = sendMail(user.email)
 
         if not ok:
-
             conn.send("MAIL_FAIL".encode())
             return False, None
 
