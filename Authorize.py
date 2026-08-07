@@ -47,17 +47,17 @@ def register_user(new_user, addr):
         except Exception:
             location = "Unknown"
 
-        newdf = Person(
+        new_person = Person(
             user=new_user["User"],
             email=new_user["E-Mail"],
             password=hashed_password,
             token=token,
             addr=addr,
             location=location,
-            ).user_frame()
+            )
 
         userdf = pd.concat(
-            [userdf, newdf],
+            [userdf, new_person.user_frame()],
             ignore_index=True
         )
 
@@ -65,15 +65,11 @@ def register_user(new_user, addr):
 
         log_message(
             new_user["User"],
-            f"{new_user['User']} giriş yaptı.",
+            f"{new_user['User']} kayıt oldu.",
             event="REGISTER"
             )
         
-        return True, {
-            "User": new_user["User"],
-            "E-Mail": new_user["E-Mail"],
-            "Token": token
-        }
+        return True, new_person
 
 
 def user_Controller(usInfo):
@@ -85,9 +81,9 @@ def user_Controller(usInfo):
         return False, "USER_FAIL:Lütfen kayıt olun."
 
     # Kullanıcının satırını al
-    user_information = alldata.loc[
+    user_information = Person(alldata.loc[
         alldata["User"] == usInfo["User"]
-    ].iloc[0]
+    ].iloc[0])
 
     # Girilen şifreyi hashle
     hashed_password = hashlib.sha256(
@@ -96,12 +92,12 @@ def user_Controller(usInfo):
 
     # Şifre doğru mu?
     if hashed_password == user_information["Pasw"]:
-        return True, user_information["Token"]
+        return True, user_information
 
     return False, "PASW_FAIL:Gelen kodu girin. "
 
 
-def user_saver(command):
+def user_saver(command, addr):
 
     command = command.split(":")
 
@@ -111,12 +107,12 @@ def user_saver(command):
         "Pasw": command[3]
     }
 
-    result, data = register_user(user_dict)
+    result, data = register_user(user_dict, addr)
 
     return result, data
 
 
-def findUser(utoken):
+def findUserByToken(utoken):
 
     aldata = pd.read_excel(path)
 
@@ -125,27 +121,25 @@ def findUser(utoken):
     if userData.empty:
         return None
 
-    return userData.iloc[0]
+    new_user = Person(userData.iloc[0])
+    
+    return new_user
 
 
 def login_user(conn, command):
 
-    user = findUser(command)
+    user = findUserByToken(command)
     if user is not None:
 
-        conn.send(f"LOGIN_OK:{user['User']}".encode())
+        conn.send(f"LOGIN_OK:{user.username}".encode())
 
         log_message(
-            user["User"],
-            f"{user['User']} giriş yaptı.",
+            user.username,
+            f"{user.username} giriş yaptı.",
             event="LOGIN"
             )
         
-        return True, {
-            "User": user["User"],
-            "E-Mail": user["E-Mail"],
-            "Token": user["Token"]
-        }
+        return True, user
     #------------------------------------------------------------------------------------
 
     conn.send("LOGIN_FAIL:".encode())
@@ -166,27 +160,19 @@ def login_user(conn, command):
 
     if result[0]:
 
-        all_data = pd.read_excel(path)
-
-        user = all_data.loc[
-            all_data["Token"] == result[1]
-        ].iloc[0]
+        user = result[1]
 
         conn.send(
-            f"LOGIN_OK:{user['User']}:{user['Token']}".encode()
+            f"LOGIN_OK:{user.username}:{user.token}".encode()
         )
 
         log_message(
-            user["User"],
-            f"{user['User']} giriş yaptı.",
+            user.username,
+            f"{user.username} giriş yaptı.",
             event="LOGIN"
             )
         
-        return True, {
-            "User": user["User"],
-            "E-Mail": user["E-Mail"],
-            "Token": user["Token"]
-        }
+        return True, user
     #------------------------------------------------------------------------------------
     shortData = result[1].split(":")[0]
 
@@ -202,11 +188,11 @@ def login_user(conn, command):
 
         all_data = pd.read_excel(path)
 
-        user = all_data.loc[
+        user = Person(all_data.loc[
             all_data["User"] == lc_list[1]
-        ].iloc[0]
+        ].iloc[0])
 
-        ok, mail_code = sendMail(user["E-Mail"])
+        ok, mail_code = sendMail(user.email)
 
         if not ok:
 
@@ -227,20 +213,16 @@ def login_user(conn, command):
             if int(code.decode()) == mail_code:
 
                 conn.send(
-                    f"LOGIN_OK:{user['User']}:{user['Token']}".encode()
+                    f"LOGIN_OK:{user.username}:{user.token}".encode()
                 )
 
                 log_message(
-                    user["User"],
-                    f"{user['User']} giriş yaptı.",
+                    user.username,
+                    f"{user.username} giriş yaptı.",
                     event="LOGIN"
                     )
 
-                return True, {
-                    "User": user["User"],
-                    "E-Mail": user["E-Mail"],
-                    "Token": user["Token"]
-                }
+                return True, user
 
         except ValueError:
             pass

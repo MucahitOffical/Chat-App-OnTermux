@@ -42,7 +42,8 @@ def broadcast(message, sender = None, usname="Anonim_User", event="CHAT"):
 
 def handle_client(conn, addr):
 
-    username = clients[conn]["User"]
+    person = clients[conn]
+    username = person.username
     print(f"{username} bağlandı")
 
     while True:
@@ -111,11 +112,11 @@ try:
             command = conn.recv(1024).decode()
 
             if command.startswith("REGISTER:"):    
-                result, data = user_saver(command)
+                result, data = user_saver(command, addr[0])
                             
                 if result:
                     conn_user = data
-                    conn.send(f"REGISTER_OK:{conn_user['User']}:{conn_user['Token']}".encode())
+                    conn.send(f"REGISTER_OK:{conn_user.username}:{conn_user.token}".encode())
                 else:
                     runCont = True
                     while runCont:
@@ -130,12 +131,12 @@ try:
 
                         usData = usData.decode()
                         
-                        result, data = user_saver(usData)
+                        result, data = user_saver(usData, addr[0])
 
                         if result:
                             conn_user = data
                             conn.send(
-                                f"REGISTER_OK:{conn_user['User']}:{conn_user['Token']}".encode()
+                                f"REGISTER_OK:{conn_user.username}:{conn_user.token}".encode()
                             )
                             runCont = False
 
@@ -152,7 +153,7 @@ try:
         if conn_user is None:
             continue
 
-        conn_user["Addr"] = addr
+        conn_user.addr = addr[0]
 
         with client_lock:
             clients[conn] = conn_user
