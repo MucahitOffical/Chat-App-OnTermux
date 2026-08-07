@@ -2,49 +2,12 @@ import os
 from datetime import datetime
 from collections import Counter
 import threading
-import unicodedata
 import pandas as pd
-import re
+from MessageEvents import Message
 
 lock = threading.Lock()
 word_count = Counter()
 current_day = datetime.now().strftime("%Y-%m-%d")
-
-
-def wordcln(metin):
-
-    degisim = {
-        "@": "a",
-        "0": "o",
-        "1": "i",
-        "3": "e",
-        "$": "s",
-        "5": "s",
-        "7": "t"
-    }
-
-    # Küçük harf
-    metin = metin.lower()
-
-    # Karakter değişimleri
-    for eski, yeni in degisim.items():
-        metin = metin.replace(eski, yeni)
-
-    # Aksan temizleme
-    metin = unicodedata.normalize("NFKD", metin)
-    metin = "".join(
-        c for c in metin
-        if not unicodedata.combining(c)
-    )
-
-    # Harf dışındakileri sil
-    metin = re.sub(r"[^a-z\s]", "", metin)
-
-    # Fazla boşlukları temizle
-    metin = " ".join(metin.split())
-
-    return metin
-
 
 def process_message(msg):
 
@@ -66,7 +29,7 @@ def process_message(msg):
 
         for word in words:
 
-            cleaned = wordcln(word)
+            cleaned = Message.content_clean(word)
 
             if cleaned:
                 word_count[cleaned] += 1

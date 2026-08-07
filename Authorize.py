@@ -3,15 +3,17 @@ import hashlib
 import secrets
 import pandas as pd
 import threading
-from MailJob import sendMail
+from MailEvents import sendMail
 from Logger import log_message
+from UserId import Person
+from IpEvents import IpInfo
 
 path = "DataBase/UserList.xlsx"
 
 register_lock = threading.Lock()
 
 
-def register_user(new_user):
+def register_user(new_user, addr):
 
     with register_lock:
 
@@ -19,7 +21,7 @@ def register_user(new_user):
 
         if not os.path.exists(path) or os.path.getsize(path) == 0:
             df = pd.DataFrame(
-                columns=["User", "E-Mail", "Pasw", "Token"]
+                columns=["User", "E-Mail", "Pasw", "Token", "Addr", "Location", "Occupation", "Degree"]
             )
             df.to_excel(path, index=False)
 
@@ -39,12 +41,20 @@ def register_user(new_user):
 
         token = secrets.token_hex(32)
 
-        newdf = pd.DataFrame([{
-            "User": new_user["User"],
-            "E-Mail": new_user["E-Mail"],
-            "Pasw": hashed_password,
-            "Token": token
-        }])
+        try:
+            ip_info = IpInfo(ip=addr).get_ip_info()
+            location = ip_info.get("city", "Unknown")
+        except Exception:
+            location = "Unknown"
+
+        newdf = Person(
+            user=new_user["User"],
+            email=new_user["E-Mail"],
+            password=hashed_password,
+            token=token,
+            addr=addr,
+            location=location,
+            ).user_frame()
 
         userdf = pd.concat(
             [userdf, newdf],
