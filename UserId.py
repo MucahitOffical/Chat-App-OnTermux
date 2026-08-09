@@ -15,4 +15,10 @@ class Person():
         self.Occupation = Occupation
 
     def user_frame(self):
-        return pd.DataFrame([self.__dict__])
+        data = self.__dict__.copy()
+        data.pop("id")
+        return pd.DataFrame(index=[self.id], data=[data])
+
+    def update(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)

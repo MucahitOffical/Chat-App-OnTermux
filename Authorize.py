@@ -97,7 +97,7 @@ def user_Controller(usInfo):
     ).hexdigest()
 
     # Şifre doğru mu?
-    if hashed_password == user_information["Pasw"]:
+    if hashed_password == user_information.password:
         return True, user_information
 
     return False, "PASW_FAIL:Gelen kodu girin. "

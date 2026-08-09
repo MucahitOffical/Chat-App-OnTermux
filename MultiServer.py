@@ -3,6 +3,7 @@ import threading
 import re 
 from Logger import process_message, log_message, save_data
 from Authorize import user_saver, login_user
+from UserId import Person
 
 
 
@@ -61,9 +62,20 @@ def handle_client(conn, addr):
                 errors="ignore"
             )
 
-            if re.match(f"/{message.lower()}") == "/update":
-                if message.lower().split(" ")[1] in ["username", "email", "password", "occupation"]:
-                    pass #kullanıcı bilgilerini güncelleme işlemleri burada yapılacak 
+            if re.match("/update", f"/{message.lower()}"):
+                update_data = message.lower().split(" ")
+                if update_data[1] in ["username", "email", "password", "occupation"]:
+                    if update_data[1] == "username":
+                        person.update(username=update_data[2])
+                    if update_data[1] == "email":
+                        person.update(email=update_data[2])
+                    if update_data[1] == "password":
+                        person.update(password=update_data[2])
+                    if update_data[1] == "occupation":
+                        person.update(occupation=update_data[2])
+                    #kullanıcı bilgilerini güncelleme işlemleri burada yapılacak
+                    #eğer kullanıcı adı aynı olan varsa uyarı gönderilecek.
+                    # 
                     #hatta bunun için özel fonksiyonlar yazılabilir. (UserId.py dosyasına)
 
             if message.lower() == "exit":
