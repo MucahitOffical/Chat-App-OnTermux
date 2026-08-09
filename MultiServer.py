@@ -45,8 +45,7 @@ def broadcast(message, sender = None, usname="Anonim_User", event="CHAT"):
 def handle_client(conn, addr):
 
     person = clients[conn]
-    username = person.username
-    print(f"{username} bağlandı")
+    print(f"{person.username} bağlandı")
 
     while True:
 
@@ -54,7 +53,7 @@ def handle_client(conn, addr):
             msg = conn.recv(1024)
 
             if not msg:
-                log_message(username, "Bağlantı kesildi", event="LEAVE")
+                log_message(person.username, "Bağlantı kesildi", event="LEAVE")
                 break
 
             message = msg.decode(
@@ -62,36 +61,71 @@ def handle_client(conn, addr):
                 errors="ignore"
             )
 
-            if re.match("/update", f"/{message.lower()}"):
-                update_data = message.lower().split(" ")
-                if update_data[1] in ["username", "email", "password", "occupation"]:
-                    if update_data[1] == "username":
-                        person.update(username=update_data[2])
-                    if update_data[1] == "email":
-                        person.update(email=update_data[2])
-                    if update_data[1] == "password":
-                        person.update(password=update_data[2])
-                    if update_data[1] == "occupation":
-                        person.update(occupation=update_data[2])
-                    #kullanıcı bilgilerini güncelleme işlemleri burada yapılacak
-                    #eğer kullanıcı adı aynı olan varsa uyarı gönderilecek.
-                    # 
-                    #hatta bunun için özel fonksiyonlar yazılabilir. (UserId.py dosyasına)
+            if message.lower().startswith("/update"):
+                update_data = message.split(" ")
+
+                if len(update_data) < 3:
+                    conn.send(
+                        "Eksik parametre girildi. Kullanım: /update <field> <new_value>".encode()
+                    )
+                    continue
+
+                if len(update_data) > 3:
+                    conn.send(
+                        "Fazla parametre girildi. Kullanım: /update <field> <new_value>".encode()
+                    )
+                    continue
+
+                if update_data[1].lower() not in ["username", "email", "password", "occupation"]:
+                    conn.send("Geçersiz güncelleme alanı.".encode())
+                    continue
+
+                if update_data[1].lower() == "username":
+                    old_username = person.username
+
+                    update = person.update(username=update_data[2])
+
+                    log_message(
+                        person.username,
+                        f"{old_username} updated {update_data[1]} to {update_data[2]}",
+                        event="UPDATE"
+                    )
+
+                    conn.send(f"{update}".encode())
+                    continue
+
+                if update_data[1].lower() == "email":
+                    update = person.update(email=update_data[2])
+                    conn.send(f"{update}".encode())
+
+                if update_data[1].lower() == "password":
+                    update = person.update(password=update_data[2])
+                    conn.send(f"{update}".encode())
+
+                if update_data[1].lower() == "occupation":
+                    update = person.update(occupation=update_data[2])
+                    conn.send(f"{update}".encode())
+
+                log_message(
+                    person.username,
+                    f"{person.username} updated {update_data[1]} to {update_data[2]}",
+                    event="UPDATE"
+                )
 
             if message.lower() == "exit":
 
                 broadcast(
-                    f"{username} çıktı".encode(),
-                    usname=username,
+                    f"{person.username} çıktı".encode(),
+                    usname=person.username,
                     event="EXIT"
                 )
                 break
 
-            print(f"{username}: {message}")
+            print(f"{person.username}: {message}")
 
-            broadcast(f"{username}: {message}".encode(),
+            broadcast(f"{person.username}: {message}".encode(),
                 sender=conn,
-                usname=username
+                usname=person.username
             )
 
             process_message(message)
@@ -107,12 +141,12 @@ def handle_client(conn, addr):
 
     conn.close()
 
-    print(username, "ayrıldı")
+    print(person.username, "ayrıldı")
 #------------------------------------------------------------------------------------------------
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-server.bind(("0.0.0.0", 5000))
+server.bind(("0.0.0.0", 5555))
 server.listen()
 server.settimeout(1.0)
 

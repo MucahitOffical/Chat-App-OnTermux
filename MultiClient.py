@@ -6,8 +6,8 @@ from getpass import getpass
 from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
 
-HOST = "Server IP Adresi"
-PORT = 5000
+HOST = "78.182.97.88"
+PORT = 5555
 
 
 def receive_messages(sock):
@@ -137,7 +137,7 @@ def register(client):
             with open("Token.txt", "w") as f:
                 f.write(command[2])
 
-            return
+            return command[1]
 
         print(command[1])
 
@@ -176,7 +176,7 @@ if os.path.isfile("Token.txt"):
         elif answer[0] == "LOGIN_FAIL":
             if answer[2] == "USER_FAIL":
                 print(answer[1])
-                register(client)
+                username = register(client)
             if answer[2] == "PASW_FAIL":
                 parİnp = input(f"{answer[1]} Gelen e-postayı girin lütfen. ")
                 client.send(parİnp.encode()) 
@@ -187,9 +187,9 @@ if os.path.isfile("Token.txt"):
                     with open("Token.txt","w", encoding="utf-8") as f:
                         f.write(resultİn[2])
                 else:
-                    register(client)
+                    username = register(client)
 else:
-    register(client)
+    username = register(client)
 
 # -------------------------------------------------------------------
 

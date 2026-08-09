@@ -1,4 +1,3 @@
-import code
 import os
 import hashlib
 import secrets
@@ -21,9 +20,8 @@ def register_user(new_user, addr):
         os.makedirs("DataBase", exist_ok=True)
 
         if not os.path.exists(path) or os.path.getsize(path) == 0:
-            df = pd.DataFrame(
-                columns=["User", "E-Mail", "Pasw", "Token", "Addr", "Location", "Occupation", "Degree"]
-            )
+            df = pd.DataFrame()
+            
             df.to_excel(path, index=False)
 
         userdf = pd.read_excel(path)
@@ -54,7 +52,7 @@ def register_user(new_user, addr):
             location = "Unknown"
 
         new_person = Person(
-            user=new_user["User"],
+            username=new_user["User"],
             email=new_user["E-Mail"],
             password=hashed_password,
             token=token,
